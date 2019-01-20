@@ -1,3 +1,3 @@
-	let Method = < Get : {} | Post : {} | Put : {} | Delete : {} | Patch : {} >
+let Method = < Get : {} | Post : {} | Put : {} | Delete : {} | Patch : {} >
 
 in  Method

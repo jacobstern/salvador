@@ -4,3 +4,6 @@
 /.emacs.desktop
 /.emacs.desktop.lock
 .\#*
+
+# Dhall
+.history
