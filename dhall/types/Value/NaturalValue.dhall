@@ -1,1 +1,0 @@
-let Value = ../Value.dhall in Value.NaturalValue {=}

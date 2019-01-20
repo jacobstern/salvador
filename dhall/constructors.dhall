@@ -1,19 +1,19 @@
 { AllowUndefinedMissing =
-	./types/OptionalValidation/AllowUndefinedMissing.dhall
+	./constructors/OptionalValidation/AllowUndefinedMissing.dhall
 , AllowNull =
-	./types/OptionalValidation/AllowNull.dhall
+	./constructors/OptionalValidation/AllowNull.dhall
 , AllowNullUndefinedMissing =
-	./types/OptionalValidation/AllowNullUndefinedMissing.dhall
+	./constructors/OptionalValidation/AllowNullUndefinedMissing.dhall
 , ListParameter =
-	./types/ParameterType/ListParameter.dhall
+	./constructors/ParameterType/ListParameter.dhall
 , ValueParameter =
-	./types/ParameterType/ValueParameter.dhall
+	./constructors/ParameterType/ValueParameter.dhall
 , DoubleValue =
-	./types/Value/DoubleValue.dhall
+	./constructors/Value/DoubleValue.dhall
 , IntegerValue =
-	./types/Value/IntegerValue.dhall
+	./constructors/Value/IntegerValue.dhall
 , NaturalValue =
-	./types/Value/NaturalValue.dhall
+	./constructors/Value/NaturalValue.dhall
 , TextValue =
-	./types/Value/NaturalValue.dhall
+	./constructors/Value/NaturalValue.dhall
 }

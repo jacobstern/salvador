@@ -1,1 +1,3 @@
-let Value = ./Value.dhall in < ValueParameter : Value | ListParameter : Value >
+let ValueType = ./ValueType.dhall
+
+in  < ValueParameter : ValueType | ListParameter : ValueType >

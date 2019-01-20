@@ -4,7 +4,7 @@ let paginationParameters =
 	  [ { name =
 			"limit"
 		, type =
-			C.ValueParameter C.NaturalValue
+			C.ValueParameter { valueType = C.NaturalValue }
 		, required =
 			False
 		, description =
@@ -13,7 +13,7 @@ let paginationParameters =
 	  , { name =
 			"start"
 		, type =
-			C.ValueParameter C.NaturalValue
+			C.ValueParameter { valueType = C.NaturalValue }
 		, required =
 			False
 		, description =

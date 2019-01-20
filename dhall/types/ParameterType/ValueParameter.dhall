@@ -1,1 +1,0 @@
-let ParameterType = ../ParameterType.dhall in ParameterType.ValueParameter

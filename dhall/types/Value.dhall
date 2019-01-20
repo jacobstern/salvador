@@ -1,12 +1,1 @@
-	let Value =
-		  < IntegerValue :
-			  {}
-		  | NaturalValue :
-			  {}
-		  | DoubleValue :
-			  {}
-		  | TextValue :
-			  {}
-		  >
-
-in  Value
+< IntegerValue : {} | NaturalValue : {} | DoubleValue : {} | TextValue : {} >

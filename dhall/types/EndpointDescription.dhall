@@ -1,0 +1,1 @@
+let EndpointDescription = { doc : Text } in EndpointDescription
