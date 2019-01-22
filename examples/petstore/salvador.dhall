@@ -59,7 +59,24 @@ let spec
                                 200
                             , content =
                                 C.JSONResponse
-                                { type = C.ReferenceListJSON { name = "Pet" } }
+                                { type =
+                                    C.ReferenceListJSON { name = "Pet" }
+                                , example =
+                                    ''
+                                    [
+                                        {
+                                            "id": 1,
+                                            "name": "Fido",
+                                            "tag": null
+                                        },
+                                        {
+                                            "id": 2,
+                                            "name": "Jefferson",
+                                            "tag": "dog"
+                                        }
+                                    ]
+                                    ''
+                                }
                             }
                         }
                       ]

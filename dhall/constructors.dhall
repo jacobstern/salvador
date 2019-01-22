@@ -4,7 +4,7 @@
     ./constructors/JSONType/ListJSON.dhall
 , ReferenceJSON =
     ./constructors/JSONType/ReferenceJSON.dhall
-, ReferenceListJSON = 
+, ReferenceListJSON =
     ./constructors/JSONType/ReferenceListJSON.dhall
 , ValueJSON =
     ./constructors/JSONType/ValueJSON.dhall

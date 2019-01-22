@@ -1,1 +1,1 @@
-let JSONType = ./JSONType.dhall in { type : JSONType }
+let JSONType = ./JSONType.dhall in { type : JSONType, example : Text }
