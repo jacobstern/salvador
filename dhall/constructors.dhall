@@ -1,4 +1,14 @@
-{ AllowUndefinedMissing =
+{ Record =
+    ./constructors/Definition/Record.dhall
+, ListJSON =
+    ./constructors/JSONType/ListJSON.dhall
+, ReferenceJSON =
+    ./constructors/JSONType/ReferenceJSON.dhall
+, ReferenceListJSON = 
+    ./constructors/JSONType/ReferenceListJSON.dhall
+, ValueJSON =
+    ./constructors/JSONType/ValueJSON.dhall
+, AllowUndefinedMissing =
     ./constructors/OptionalValidation/AllowUndefinedMissing.dhall
 , AllowNull =
     ./constructors/OptionalValidation/AllowNull.dhall
@@ -8,6 +18,10 @@
     ./constructors/ParameterType/ListParameter.dhall
 , ValueParameter =
     ./constructors/ParameterType/ValueParameter.dhall
+, CapturePathSegment =
+    ./constructors/PathSegment/CapturePathSegment.dhall
+, LiteralPathSegment =
+    ./constructors/PathSegment/LiteralPathSegment.dhall
 , DoubleValue =
     ./constructors/Value/DoubleValue.dhall
 , IntegerValue =
@@ -26,4 +40,8 @@
     ./constructors/Request/Post.dhall
 , Patch =
     ./constructors/Request/Patch.dhall
+, NoContentResponse =
+    ./constructors/ResponseContent/NoContentResponse.dhall
+, JSONResponse =
+    ./constructors/ResponseContent/JSONResponse.dhall
 }
