@@ -1,0 +1,79 @@
+cabal-version:       2.0
+name:                salvador
+version:             0.0.0
+synopsis:            See README for more info
+description:         See README for more info
+homepage:            https://github.com/jacobstern/salvador
+bug-reports:         https://github.com/jacobstern/salvador/issues
+license:             MIT
+license-file:        LICENSE
+author:              Jacob Stern
+maintainer:          jacob.stern@outlook.com
+copyright:           2019 Jacob Stern
+category:            Development
+build-type:          Simple
+extra-doc-files:     README.md
+                   , CHANGELOG.md
+tested-with:         GHC == 8.0.1, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.3, GHC == 8.4.4
+
+source-repository head
+  type:                git
+  location:            https://github.com/jacobstern/salvador.git
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Salvador
+                       
+
+  build-depends:       base >= 4.9.0.0 && < 4.12
+                     
+
+  ghc-options:         -Wall
+                       -Wincomplete-uni-patterns
+                       -Wincomplete-record-updates
+                       -Wcompat
+                       -Widentities
+                       -Wredundant-constraints
+
+  default-language:    Haskell2010
+
+executable salvador
+  hs-source-dirs:      app
+  main-is:             Main.hs
+
+  build-depends:       base >= 4.9.0.0 && < 4.12
+                     , salvador
+                     
+
+  ghc-options:         -Wall
+                       -threaded
+                       -rtsopts
+                       -with-rtsopts=-N
+                       -Wincomplete-uni-patterns
+                       -Wincomplete-record-updates
+                       -Wcompat
+                       -Widentities
+                       -Wredundant-constraints
+
+  default-language:    Haskell2010
+
+test-suite salvador-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+
+  build-depends:       base >= 4.9.0.0 && < 4.12
+                     , salvador
+                     
+
+  ghc-options:         -Wall
+                       -threaded
+                       -rtsopts
+                       -with-rtsopts=-N
+                       -Wincomplete-uni-patterns
+                       -Wincomplete-record-updates
+                       -Wcompat
+                       -Widentities
+                       -Wredundant-constraints
+
+  default-language:    Haskell2010
