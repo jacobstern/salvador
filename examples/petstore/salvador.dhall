@@ -2,6 +2,9 @@ let C = ../../dhall/constructors.dhall
 
 let T = ../../dhall/types.dhall
 
+let List/concat =
+      https://raw.githubusercontent.com/dhall-lang/dhall-lang/0a7f596d03b3ea760a96a8e03935f4baa64274e1/Prelude/List/concat sha256:43ef75a328d312c7fed8fbaf25d945b244d1b96505e3f1c291567ecee972449c
+
 let paginationQueryParameters =
       [ { name =
             "limit"
@@ -23,7 +26,28 @@ let paginationQueryParameters =
         }
       ]
 
-let petsSegment = C.LiteralPathSegment { segment = "pets" }
+let petsBaseSegment = C.LiteralPathSegment { segment = "pets" }
+
+let petsUserSuppliedFields =
+      [ { name =
+            "name"
+        , required =
+            True
+        , description =
+            "The name of the pet."
+        , type =
+            C.ValueJSON { valueType = C.TextValue }
+        }
+      , { name =
+            "tag"
+        , required =
+            False
+        , description =
+            "An optional tag to categorize the pet."
+        , type =
+            C.ValueJSON { valueType = C.TextValue }
+        }
+      ]
 
 let spec
     : T.Spec
@@ -42,13 +66,13 @@ let spec
               C.AllowNull
           }
       , modules =
-          [ { name =
+          [ { title =
                 "Pets"
             , description =
                 "Modify and access pets in the database."
             , paths =
                 [ { location =
-                      [ petsSegment ]
+                      [ petsBaseSegment ]
                   , endpoints =
                       [ { description =
                             "List all pets."
@@ -79,41 +103,73 @@ let spec
                                 }
                             }
                         }
+                      , { description =
+                            "Create a pet."
+                        , request =
+                            C.Post
+                            { body =
+                                C.RecordRequestBody
+                                { fields = petsUserSuppliedFields }
+                            }
+                        , response =
+                            { statusCode = 201, content = C.NoContentResponse }
+                        }
+                      ]
+                  }
+                , { location =
+                      [ petsBaseSegment
+                      , C.CapturePathSegment
+                        { name =
+                            "petId"
+                        , description =
+                            "The identifier of a pet to retrieve."
+                        , valueType =
+                            C.NaturalValue
+                        }
+                      ]
+                  , endpoints =
+                      [ { description =
+                            "Access a single pet by its unique identifier."
+                        , request =
+                            C.Get { parameters = [] : List T.QueryParameter }
+                        , response =
+                            { statusCode =
+                                200
+                            , content =
+                                C.JSONResponse
+                                { type =
+                                    C.ReferenceJSON { name = "Pet" }
+                                , example =
+                                    ''
+                                    {
+                                        "id": 1,
+                                        "name": "Fido",
+                                        "tag": null
+                                    }
+                                    ''
+                                }
+                            }
+                        }
                       ]
                   }
                 ]
             , definitions =
-                [ C.Record
-                  { name =
+                [ { name =
                       "Pet"
                   , fields =
-                      [ { name =
-                            "id"
-                        , required =
-                            True
-                        , description =
-                            "Unique identifier for the pet."
-                        , type =
-                            C.ValueJSON { valueType = C.NaturalValue }
-                        }
-                      , { name =
-                            "name"
-                        , required =
-                            True
-                        , description =
-                            "The name of the pet."
-                        , type =
-                            C.ValueJSON { valueType = C.TextValue }
-                        }
-                      , { name =
-                            "tag"
-                        , required =
-                            False
-                        , description =
-                            "An optional tag to categorize the pet."
-                        , type =
-                            C.ValueJSON { valueType = C.TextValue }
-                        }
+                      List/concat
+                      T.Field
+                      [ [ { name =
+                              "id"
+                          , required =
+                              True
+                          , description =
+                              "Unique identifier for the pet."
+                          , type =
+                              C.ValueJSON { valueType = C.NaturalValue }
+                          }
+                        ]
+                      , petsUserSuppliedFields
                       ]
                   }
                 ]

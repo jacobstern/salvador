@@ -1,6 +1,4 @@
-{ Record =
-    ./constructors/Definition/Record.dhall
-, ListJSON =
+{ ListJSON =
     ./constructors/JSONType/ListJSON.dhall
 , ReferenceJSON =
     ./constructors/JSONType/ReferenceJSON.dhall
@@ -40,6 +38,10 @@
     ./constructors/Request/Post.dhall
 , Patch =
     ./constructors/Request/Patch.dhall
+, ArbitraryRequestBody =
+    ./constructors/RequestBody/ArbitraryRequestBody.dhall
+, RecordRequestBody =
+    ./constructors/RequestBody/RecordRequestBody.dhall
 , NoContentResponse =
     ./constructors/ResponseContent/NoContentResponse.dhall
 , JSONResponse =

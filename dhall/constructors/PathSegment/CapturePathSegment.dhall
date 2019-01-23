@@ -1,3 +1,3 @@
 let PathSegment = ../../types/PathSegment.dhall
 
-in  PathSegment.LiteralPathSegment
+in  PathSegment.CapturePathSegment

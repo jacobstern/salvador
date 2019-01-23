@@ -1,1 +1,7 @@
-{ Spec = ./types/Spec.dhall }
+{ Field =
+    ./types/Field.dhall
+, QueryParameter =
+    ./types/QueryParameter.dhall
+, Spec =
+    ./types/Spec.dhall
+}

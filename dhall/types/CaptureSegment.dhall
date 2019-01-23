@@ -1,3 +1,3 @@
 let Value = ./Value.dhall
 
-in  { segment : Text, description : Text, valueType : Value }
+in  { name : Text, description : Text, valueType : Value }
