@@ -3,7 +3,7 @@ module Salvador.Specification
     , CaptureSegment(..)
     , Endpoint(..)
     , Field(..)
-    , JSONBody (..)
+    , JSONBody(..)
     , JSONContent(..)
     , JSONType(..)
     , LiteralSegment(..)
@@ -13,9 +13,16 @@ module Salvador.Specification
     , Path(..)
     , PathSegment(..)
     , QueryParameter(..)
-    , QueryParameterRequest (..)
+    , QueryParameterRequest(..)
     , Record(..)
+    , ReferenceType(..)
+    , Request(..)
+    , RequestBody(..)
+    , RequestBodyRequest(..)
+    , Response(..)
+    , ResponseContent(..)
     , Spec(..)
+    , Validation(..)
     , Value(..)
     , ValueType(..)
     , interpretOptions
@@ -27,10 +34,13 @@ import qualified Data.Text                     as Text
 import qualified Data.Char                     as Char
 import           GHC.Natural                    ( Natural )
 import           GHC.Generics                   ( Generic )
-import           Dhall                          ( Interpret
+import           Dhall                          ( Interpret(..)
                                                 , InterpretOptions(..)
+                                                , Type(..)
                                                 , defaultInterpretOptions
                                                 )
+import           Dhall.Core                     ( Expr(..) )
+import qualified Dhall.Map
 
 newtype AnonymousRecord = AnonymousRecord
     { anonymousFields ::  [Field]
@@ -48,7 +58,7 @@ instance Interpret CaptureSegment
 
 data Endpoint = Endpoint
     { endpointDescription :: Text
-    , endpointRequest :: Text
+    , endpointRequest :: Request
     , endpointResponse :: Response
     } deriving (Eq, Show, Ord, Generic)
 
@@ -81,7 +91,32 @@ data JSONType
     | ReferenceListJSON ReferenceType
     deriving (Eq, Show, Ord, Generic)
 
-instance Interpret JSONType
+instance Interpret JSONType where
+    autoWith options = Type extractOut expectedOut
+      where
+        valueType     = autoWith options :: Type ValueType
+        referenceType = autoWith options :: Type ReferenceType
+        extractOut (UnionLit name expr _)
+            | name == "ValueJSON"
+            = ValueJSON <$> extract valueType expr
+            | name == "ListJSON"
+            = ListJSON <$> extract valueType expr
+            | name == "ReferenceJSON"
+            = ReferenceJSON <$> extract referenceType expr
+            | name == "ReferenceListJSON"
+            = ReferenceListJSON <$> extract referenceType expr
+            | otherwise
+            = Nothing
+        extractOut _ = Nothing
+        expectedOut = Union
+            (Dhall.Map.fromList
+                [ ("ValueJSON"        , expected valueType)
+                , ("ListJSON"         , expected valueType)
+                , ("ReferenceJSON"    , expected referenceType)
+                , ("ReferenceListJSON", expected referenceType)
+                ]
+            )
+
 
 newtype LiteralSegment = LiteralSegment
     { literalSegment :: Text }
@@ -107,7 +142,24 @@ instance Interpret OptionalValidation
 data ParameterType = ValueParameter ValueType | ListParameter ValueType
     deriving (Eq, Show, Ord, Generic)
 
-instance Interpret ParameterType
+instance Interpret ParameterType where
+    autoWith options = Type extractOut expectedOut
+      where
+        valueType = autoWith options :: Type ValueType
+        extractOut (UnionLit name expr _)
+            | name == "ValueParameter"
+            = ValueParameter <$> extract valueType expr
+            | name == "ListParameter"
+            = ListParameter <$> extract valueType expr
+            | otherwise
+            = Nothing
+        extractOut _ = Nothing
+        expectedOut = Union
+            (Dhall.Map.fromList
+                [ ("ValueParameter", expected valueType)
+                , ("ListParameter" , expected valueType)
+                ]
+            )
 
 data Path = Path
     { pathLocation :: [PathSegment]
@@ -120,7 +172,25 @@ data PathSegment
     = LiteralPathSegment LiteralSegment | CapturePathSegment CaptureSegment
     deriving (Eq, Show, Ord, Generic)
 
-instance Interpret PathSegment
+instance Interpret PathSegment where
+    autoWith options = Type extractOut expectedOut
+      where
+        literalSegment = autoWith options :: Type LiteralSegment
+        captureSegment = autoWith options :: Type CaptureSegment
+        extractOut (UnionLit name expr _)
+            | name == "LiteralPathSegment"
+            = LiteralPathSegment <$> extract literalSegment expr
+            | name == "CapturePathSegment"
+            = CapturePathSegment <$> extract captureSegment expr
+            | otherwise
+            = Nothing
+        extractOut _ = Nothing
+        expectedOut = Union
+            (Dhall.Map.fromList
+                [ ("LiteralPathSegment", expected literalSegment)
+                , ("CapturePathSegment", expected captureSegment)
+                ]
+            )
 
 data QueryParameter = QueryParameter
     { parameterName :: Text
@@ -156,14 +226,53 @@ data Request
     | Delete QueryParameterRequest
     deriving (Eq, Show, Ord, Generic)
 
-instance Interpret Request
+instance Interpret Request where
+    autoWith options = Type extractOut expectedOut
+      where
+        queryParameterRequest = autoWith options :: Type QueryParameterRequest
+        requestBodyRequest    = autoWith options :: Type RequestBodyRequest
+        extractOut (UnionLit name expr _)
+            | name == "Get"    = Get <$> extract queryParameterRequest expr
+            | name == "Post"   = Post <$> extract requestBodyRequest expr
+            | name == "Patch"  = Patch <$> extract requestBodyRequest expr
+            | name == "Put"    = Put <$> extract requestBodyRequest expr
+            | name == "Delete" = Delete <$> extract queryParameterRequest expr
+            | otherwise        = Nothing
+        extractOut _ = Nothing
+        expectedOut = Union
+            (Dhall.Map.fromList
+                [ ("Get"   , expected queryParameterRequest)
+                , ("Post"  , expected requestBodyRequest)
+                , ("Patch" , expected requestBodyRequest)
+                , ("Put"   , expected requestBodyRequest)
+                , ("Delete", expected queryParameterRequest)
+                ]
+            )
 
 data RequestBody
     = RecordRequestBody AnonymousRecord
     | ArbitraryRequestBody JSONBody
     deriving (Eq, Show, Ord, Generic)
 
-instance Interpret RequestBody
+instance Interpret RequestBody where
+    autoWith options = Type extractOut expectedOut
+      where
+        anonymousRecord = autoWith options :: Type AnonymousRecord
+        jsonBody        = autoWith options :: Type JSONBody
+        extractOut (UnionLit name expr _)
+            | name == "RecordRequestBody"
+            = RecordRequestBody <$> extract anonymousRecord expr
+            | name == "ArbitraryRequestBody"
+            = ArbitraryRequestBody <$> extract jsonBody expr
+            | otherwise
+            = Nothing
+        extractOut _ = Nothing
+        expectedOut = Union
+            (Dhall.Map.fromList
+                [ ("RecordRequestBody"   , expected anonymousRecord)
+                , ("ArbitraryRequestBody", expected jsonBody)
+                ]
+            )
 
 newtype RequestBodyRequest = RequestBodyRequest
     { requestBody :: RequestBody
@@ -181,7 +290,21 @@ instance Interpret Response
 data ResponseContent = JSONResponse JSONContent | NoContentResponse
     deriving (Eq, Show, Ord, Generic)
 
-instance Interpret ResponseContent
+instance Interpret ResponseContent where
+    autoWith options = Type extractOut expectedOut
+      where
+        jsonContent = autoWith options :: Type JSONContent
+        extractOut (UnionLit name expr _)
+            | name == "JSONResponse" = JSONResponse <$> extract jsonContent expr
+            | name == "NoContentResponse" = Just NoContentResponse
+            | otherwise = Nothing
+        extractOut _ = Nothing
+        expectedOut = Union
+            (Dhall.Map.fromList
+                [ ("JSONResponse"     , expected jsonContent)
+                , ("NoContentResponse", Dhall.Core.Record mempty)
+                ]
+            )
 
 data Spec = Spec
     { specTitle :: Text
