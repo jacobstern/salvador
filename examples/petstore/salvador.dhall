@@ -9,7 +9,7 @@ let paginationQueryParameters =
       [ { name =
             "limit"
         , type =
-            C.ValueParameter { valueType = C.NaturalValue }
+            C.ValueParameter { type = C.NaturalValue }
         , required =
             False
         , description =
@@ -18,7 +18,7 @@ let paginationQueryParameters =
       , { name =
             "start"
         , type =
-            C.ValueParameter { valueType = C.NaturalValue }
+            C.ValueParameter { type = C.NaturalValue }
         , required =
             False
         , description =
@@ -36,7 +36,7 @@ let petsUserSuppliedFields =
         , description =
             "The name of the pet."
         , type =
-            C.ValueJSON { valueType = C.TextValue }
+            C.ValueJSON { type = C.TextValue }
         }
       , { name =
             "tag"
@@ -45,7 +45,7 @@ let petsUserSuppliedFields =
         , description =
             "An optional tag to categorize the pet."
         , type =
-            C.ValueJSON { valueType = C.TextValue }
+            C.ValueJSON { type = C.TextValue }
         }
       ]
 
@@ -123,7 +123,7 @@ let spec
                             "petId"
                         , description =
                             "The identifier of a pet to retrieve."
-                        , valueType =
+                        , type =
                             C.NaturalValue
                         }
                       ]
@@ -166,7 +166,7 @@ let spec
                           , description =
                               "Unique identifier for the pet."
                           , type =
-                              C.ValueJSON { valueType = C.NaturalValue }
+                              C.ValueJSON { type = C.NaturalValue }
                           }
                         ]
                       , petsUserSuppliedFields

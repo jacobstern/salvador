@@ -1,1 +1,1 @@
-{ valueType : ./Value.dhall }
+{ type : ./Value.dhall }
