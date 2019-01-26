@@ -16,6 +16,6 @@ integrationTests :: TestTree
 integrationTests = testGroup
   "Integration tests"
   [ testCase "Load file from Dhall" $ do
-      spec <- input specAuto "./test/examples/petstore/salvador.dhall"
+      spec <- input specAuto "./examples/petstore/salvador.dhall"
       specTitle spec @?= "Petstore"
   ]

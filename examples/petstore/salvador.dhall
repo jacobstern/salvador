@@ -3,13 +3,13 @@ let C = ../../dhall/constructors.dhall
 let T = ../../dhall/types.dhall
 
 let List/concat =
-      https://raw.githubusercontent.com/dhall-lang/dhall-lang/v4.0.0/Prelude/List/concat
+      https://raw.githubusercontent.com/dhall-lang/dhall-lang/0a7f596d03b3ea760a96a8e03935f4baa64274e1/Prelude/List/concat sha256:43ef75a328d312c7fed8fbaf25d945b244d1b96505e3f1c291567ecee972449c
 
 let paginationQueryParameters =
       [ { name =
             "limit"
         , type =
-            C.ValueParameter { type = C.NaturalValue }
+            C.ValueParameter { valueType = C.NaturalValue }
         , required =
             False
         , description =
@@ -18,7 +18,7 @@ let paginationQueryParameters =
       , { name =
             "start"
         , type =
-            C.ValueParameter { type = C.NaturalValue }
+            C.ValueParameter { valueType = C.NaturalValue }
         , required =
             False
         , description =
@@ -36,7 +36,7 @@ let petsUserSuppliedFields =
         , description =
             "The name of the pet."
         , type =
-            C.ValueJSON { type = C.TextValue }
+            C.ValueJSON { valueType = C.TextValue }
         }
       , { name =
             "tag"
@@ -45,7 +45,7 @@ let petsUserSuppliedFields =
         , description =
             "An optional tag to categorize the pet."
         , type =
-            C.ValueJSON { type = C.TextValue }
+            C.ValueJSON { valueType = C.TextValue }
         }
       ]
 
@@ -123,7 +123,7 @@ let spec
                             "petId"
                         , description =
                             "The identifier of a pet to retrieve."
-                        , type =
+                        , valueType =
                             C.NaturalValue
                         }
                       ]
@@ -166,7 +166,7 @@ let spec
                           , description =
                               "Unique identifier for the pet."
                           , type =
-                              C.ValueJSON { type = C.NaturalValue }
+                              C.ValueJSON { valueType = C.NaturalValue }
                           }
                         ]
                       , petsUserSuppliedFields

@@ -52,7 +52,7 @@ instance Interpret AnonymousRecord
 data CaptureSegment = CaptureSegment
     { captureName :: Text
     , captureDescription :: Text
-    , captureType :: Value
+    , captureValueType :: Value
     } deriving (Eq, Show, Ord, Generic)
 
 instance Interpret CaptureSegment
@@ -329,7 +329,7 @@ data Value = IntegerValue | NaturalValue | DoubleValue | TextValue
 instance Interpret Value
 
 newtype ValueType = ValueType
-    { valueType :: Value
+    { unValueType :: Value
     } deriving (Eq, Show, Ord, Generic)
 
 instance Interpret ValueType
