@@ -23,10 +23,10 @@ source-repository head
 library
   hs-source-dirs:      src
   exposed-modules:     Salvador
-                     , Salvador.Specification
+                     , Salvador.Spec
 
   build-depends:       base >= 4.9.0.0 && < 4.13
-                     , dhall >= 1.19.0 && < 1.21.0
+                     , dhall >= 1.20.0 && < 1.21.0
                      , text >=0.11.1.0 && <1.3
 
   ghc-options:         -Wall
@@ -140,9 +140,12 @@ executable salvador
 test-suite salvador-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
-  main-is:             Spec.hs
+  main-is:             Test.hs
 
   build-depends:       base >= 4.9.0.0 && < 4.13
+                     , tasty >= 1.1 && < 1.3
+                     , tasty-hunit >= 0.9 && < 0.11
+                     , dhall >= 1.20.0 && < 1.21.0
                      , salvador
                      
 

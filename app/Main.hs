@@ -1,7 +1,8 @@
-module Main (main) where
-
-import Salvador (someFunc)
+module Main
+  ( main
+  )
+where
 
 
 main :: IO ()
-main = someFunc
+main = putStrLn "Hello main"

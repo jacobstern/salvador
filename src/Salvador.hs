@@ -1,6 +1,6 @@
 module Salvador
-       ( someFunc
-       ) where
+  ( module Salvador.Spec
+  )
+where
 
-someFunc :: IO ()
-someFunc = putStrLn ("someFunc" :: String)
+import           Salvador.Spec

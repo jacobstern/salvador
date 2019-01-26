@@ -1,9 +1,9 @@
-let C = ../../dhall/constructors.dhall
+let C = ../../../dhall/constructors.dhall
 
-let T = ../../dhall/types.dhall
+let T = ../../../dhall/types.dhall
 
 let List/concat =
-      https://raw.githubusercontent.com/dhall-lang/dhall-lang/v4.0.0/Prelude/List/concat
+      https://raw.githubusercontent.com/dhall-lang/dhall-lang/0a7f596d03b3ea760a96a8e03935f4baa64274e1/Prelude/List/concat sha256:43ef75a328d312c7fed8fbaf25d945b244d1b96505e3f1c291567ecee972449c
 
 let paginationQueryParameters =
       [ { name =

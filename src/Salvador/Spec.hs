@@ -1,32 +1,33 @@
-module Salvador.Specification
-    ( AnonymousRecord(..)
-    , CaptureSegment(..)
-    , Endpoint(..)
-    , Field(..)
-    , JSONBody(..)
-    , JSONContent(..)
-    , JSONType(..)
-    , LiteralSegment(..)
-    , Module(..)
-    , OptionalValidation(..)
-    , ParameterType(..)
-    , Path(..)
-    , PathSegment(..)
-    , QueryParameter(..)
-    , QueryParameterRequest(..)
-    , Record(..)
-    , ReferenceType(..)
-    , Request(..)
-    , RequestBody(..)
-    , RequestBodyRequest(..)
-    , Response(..)
-    , ResponseContent(..)
-    , Spec(..)
-    , Validation(..)
-    , Value(..)
-    , ValueType(..)
-    , interpretOptions
-    )
+module Salvador.Spec
+  ( AnonymousRecord(..)
+  , CaptureSegment(..)
+  , Endpoint(..)
+  , Field(..)
+  , JSONBody(..)
+  , JSONContent(..)
+  , JSONType(..)
+  , LiteralSegment(..)
+  , Module(..)
+  , OptionalValidation(..)
+  , ParameterType(..)
+  , Path(..)
+  , PathSegment(..)
+  , QueryParameter(..)
+  , QueryParameterRequest(..)
+  , Record(..)
+  , ReferenceType(..)
+  , Request(..)
+  , RequestBody(..)
+  , RequestBodyRequest(..)
+  , Response(..)
+  , ResponseContent(..)
+  , Spec(..)
+  , Validation(..)
+  , Value(..)
+  , ValueType(..)
+  , specInterpretOptions
+  , specAuto
+  )
 where
 
 import           Data.Text                      ( Text )
@@ -335,11 +336,14 @@ instance Interpret ValueType
 
 dropFirstCamelCaseWord :: Text -> Text
 dropFirstCamelCaseWord = firstToLower . Text.dropWhile Char.isLower
-  where
-    firstToLower t = case Text.uncons t of
-        Just (c, rest) -> Text.cons (Char.toLower c) rest
-        Nothing        -> t
+ where
+  firstToLower t = case Text.uncons t of
+    Just (c, rest) -> Text.cons (Char.toLower c) rest
+    Nothing        -> t
 
-interpretOptions :: InterpretOptions
-interpretOptions =
-    defaultInterpretOptions { fieldModifier = dropFirstCamelCaseWord }
+specInterpretOptions :: InterpretOptions
+specInterpretOptions =
+  defaultInterpretOptions { fieldModifier = dropFirstCamelCaseWord }
+
+specAuto :: Interpret a => Type a
+specAuto = autoWith specInterpretOptions
