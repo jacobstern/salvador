@@ -25,8 +25,8 @@ module Salvador.Spec
   , Validation(..)
   , Value(..)
   , ValueType(..)
-  , specInterpretOptions
-  , specAuto
+  , interpretOptions
+  , specType
   )
 where
 
@@ -341,9 +341,9 @@ dropFirstCamelCaseWord = firstToLower . Text.dropWhile Char.isLower
     Just (c, rest) -> Text.cons (Char.toLower c) rest
     Nothing        -> t
 
-specInterpretOptions :: InterpretOptions
-specInterpretOptions =
+interpretOptions :: InterpretOptions
+interpretOptions =
   defaultInterpretOptions { fieldModifier = dropFirstCamelCaseWord }
 
-specAuto :: Interpret a => Type a
-specAuto = autoWith specInterpretOptions
+specType :: Type Spec
+specType = autoWith interpretOptions
