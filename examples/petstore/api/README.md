@@ -8,13 +8,9 @@ to the Salvador spec format.
 
 Modify and access pets in the database.
 
-## List Pets
+## GET /pets
 
 List all pets.
-
-### HTTP Request
-
-`GET /pets`
 
 ### Query Parameters
 
@@ -23,13 +19,11 @@ List all pets.
 | limit     | Natural | Optional | Maximum number of items to return.     |
 | offset    | Natural | Optional | Offset from the beginning of the list. |
 
-### Response Status
+### Responses
 
-200
-
-### Response Content
-
-List of [Pet](#pet)
+| Status Code | Content             |
+| ----------- | ------------------- |
+| 200         | List of [Pet](#pet) |
 
 ### Example Response
 
@@ -47,13 +41,9 @@ List of [Pet](#pet)
     }
 ]
 ```
-## Create Pet
+## POST /pets
 
 Create a pet.
-
-### HTTP Request
-
-`POST /pets`
 
 ### Request Body
 
@@ -62,21 +52,15 @@ Create a pet.
 | name  | Text | Required | The name of the pet.                   |
 | tag   | Text | Optional | An optional tag to categorize the pet. |
 
-### Response Status
+### Responses
 
-201
+| Status Code | Content    |
+| ----------- | ---------- |
+| 201         | No content |
 
-### Response Content
-
-No content.
-
-## Get a Specific Pet
+## GET /pets/{petId}
 
 Access a single pet by its unique identifier.
-
-### HTTP Request
-
-`GET /pets/{petId}`
 
 ### URL Parameters
 
@@ -84,13 +68,11 @@ Access a single pet by its unique identifier.
 | --------- | ------- | ------------------------------------ |
 | petId     | Natural | The identifier of a pet to retrieve. |
 
-### Response Status
+### Responses
 
-200
-
-### Response Content
-
-[Pet](#pet)
+| Status Code | Content     |
+| ----------- | ----------- |
+| 200         | [Pet](#pet) |
 
 ### Example Response
 

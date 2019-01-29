@@ -3,7 +3,6 @@ module Salvador.Markdown
   )
 where
 
-import           Numeric.Natural                ( Natural )
 import           Data.Foldable                  ( foldl' )
 import           Data.List.NonEmpty             ( NonEmpty(..) )
 import           Data.Text                      ( Text )
@@ -29,9 +28,6 @@ lineBreak = singleton '\n'
 
 makeParagraph :: Builder -> Builder
 makeParagraph contents = contents <> lineBreak <> lineBreak
-
-makeCodeInline :: Builder -> Builder
-makeCodeInline contents = "`" <> contents <> "`"
 
 makeJSONCodeBlock :: Builder -> Builder
 makeJSONCodeBlock contents =
@@ -137,12 +133,10 @@ displayJSONType (ReferenceJSON (ReferenceType name )) = displayReference name
 displayJSONType (ReferenceListJSON (ReferenceType name)) =
   displayReferenceList name
 
-renderRequestHTTP :: [PathSegment] -> Endpoint -> Builder
-renderRequestHTTP segments Endpoint {..} = renderHeader 3 "HTTP Request"
-  <> (makeParagraph . makeCodeInline . fromText) request
+renderEndpointHeader :: [PathSegment] -> Endpoint -> Builder
+renderEndpointHeader path Endpoint {..} = renderHeader 2 request
  where
-  request =
-    requestMethodName endpointRequest <> " " <> templatePathURL segments
+  request = requestMethodName endpointRequest <> " " <> templatePathURL path
 
 renderPathCaptures :: [PathSegment] -> Builder
 renderPathCaptures path = case getCaptureSegments path of
@@ -203,35 +197,33 @@ renderRequest (Patch  requestBody    ) = renderRequestBody requestBody
 renderRequest (Put    requestBody    ) = renderRequestBody requestBody
 renderRequest (Delete queryParameters) = renderQueryParameters queryParameters
 
-renderResponseStatusCode :: Natural -> Builder
-renderResponseStatusCode statusCode = renderHeader 3 "Response Status"
-  <> (makeParagraph . Builder.fromString . show) statusCode
+renderJSONCodeBlock :: Text -> Builder
+renderJSONCodeBlock = makeJSONCodeBlock . Builder.fromText . Text.strip
 
-renderResponseNoContent :: Builder
-renderResponseNoContent =
-  renderHeader 3 "Response Content" <> makeParagraph "No content."
+renderResponsesTable :: Response -> Builder
+renderResponsesTable Response {..} =
+  renderHeader 3 "Responses" <> renderTableGFM
+    (Fixed.mk2 "Status Code" "Content" :| [Fixed.mk2 statusCode content])
+ where
+  statusCode = (Text.pack . show) responseStatusCode
+  content    = case responseContent of
+    (JSONResponse JSONContent {..}) -> displayJSONType contentType
+    NoContentResponse               -> "No content"
 
-renderResponseJSONContent :: JSONContent -> Builder
-renderResponseJSONContent JSONContent {..} =
-  renderHeader 3 "Response Content"
-    <> renderJSONType contentType
-    <> renderHeader 3 "Example Response"
-    <> makeJSONCodeBlock example
-  where example = (Builder.fromText . Text.strip) contentExample
-
-renderResponseContent :: ResponseContent -> Builder
-renderResponseContent (JSONResponse json) = renderResponseJSONContent json
-renderResponseContent NoContentResponse   = renderResponseNoContent
+renderResponseExample :: Response -> Builder
+renderResponseExample Response {..} = case responseContent of
+  (JSONResponse JSONContent {..}) ->
+    renderHeader 3 "Example Response" <> renderJSONCodeBlock contentExample
+  NoContentResponse -> mempty
 
 renderResponse :: Response -> Builder
-renderResponse Response {..} = renderResponseStatusCode responseStatusCode
-  <> renderResponseContent responseContent
+renderResponse response =
+  renderResponsesTable response <> renderResponseExample response
 
 renderEndpoint :: [PathSegment] -> Endpoint -> Builder
 renderEndpoint path endpoint@Endpoint {..} =
-  renderHeader 2 endpointTitle
+  renderEndpointHeader path endpoint
     <> renderDescription endpointDescription
-    <> renderRequestHTTP path endpoint
     <> renderPathCaptures path
     <> renderRequest endpointRequest
     <> renderResponse endpointResponse

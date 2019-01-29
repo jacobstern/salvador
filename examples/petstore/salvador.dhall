@@ -74,9 +74,7 @@ let spec
                 [ { location =
                       [ petsBaseSegment ]
                   , endpoints =
-                      [ { title =
-                            "List Pets"
-                        , description =
+                      [ { description =
                             "List all pets."
                         , request =
                             C.Get { parameters = paginationQueryParameters }
@@ -105,9 +103,7 @@ let spec
                                 }
                             }
                         }
-                      , { title =
-                            "Create Pet"
-                        , description =
+                      , { description =
                             "Create a pet."
                         , request =
                             C.Post
@@ -132,9 +128,7 @@ let spec
                         }
                       ]
                   , endpoints =
-                      [ { title =
-                            "Get a Specific Pet"
-                        , description =
+                      [ { description =
                             "Access a single pet by its unique identifier."
                         , request =
                             C.Get { parameters = [] : List T.QueryParameter }
