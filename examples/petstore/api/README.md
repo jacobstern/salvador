@@ -57,10 +57,10 @@ Create a pet.
 
 ### Request Body
 
-| Field | Type    | Required | Description                            |
-| ----- | ------- | -------- | -------------------------------------- |
-| name  | Natural | Required | The name of the pet.                   |
-| tag   | Natural | Optional | An optional tag to categorize the pet. |
+| Field | Type | Required | Description                            |
+| ----- | ---- | -------- | -------------------------------------- |
+| name  | Text | Required | The name of the pet.                   |
+| tag   | Text | Optional | An optional tag to categorize the pet. |
 
 ### Response Status
 
@@ -108,6 +108,6 @@ Access a single pet by its unique identifier.
 | Field | Type    | Required | Description                            |
 | ----- | ------- | -------- | -------------------------------------- |
 | id    | Natural | Required | Unique identifier for the pet.         |
-| name  | Natural | Required | The name of the pet.                   |
-| tag   | Natural | Optional | An optional tag to categorize the pet. |
+| name  | Text    | Required | The name of the pet.                   |
+| tag   | Text    | Optional | An optional tag to categorize the pet. |
 

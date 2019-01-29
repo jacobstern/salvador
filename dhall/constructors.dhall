@@ -27,7 +27,7 @@
 , NaturalValue =
     ./constructors/Value/NaturalValue.dhall
 , TextValue =
-    ./constructors/Value/NaturalValue.dhall
+    ./constructors/Value/TextValue.dhall
 , Delete =
     ./constructors/Request/Delete.dhall
 , Get =
