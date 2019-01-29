@@ -33,7 +33,7 @@ where
 import           Data.Text                      ( Text )
 import qualified Data.Text                     as Text
 import qualified Data.Char                     as Char
-import           GHC.Natural                    ( Natural )
+import           Numeric.Natural                ( Natural )
 import           GHC.Generics                   ( Generic )
 import           Dhall                          ( Interpret(..)
                                                 , InterpretOptions(..)

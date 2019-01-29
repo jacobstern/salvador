@@ -3,6 +3,7 @@ module Main
   )
 where
 
+import           Salvador.CLI                   ( cliMain )
 
 main :: IO ()
-main = putStrLn "Hello main"
+main = cliMain

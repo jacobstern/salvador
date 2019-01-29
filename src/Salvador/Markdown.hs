@@ -3,11 +3,13 @@ module Salvador.Markdown
   )
 where
 
+import           Numeric.Natural                ( Natural )
 import           Data.Foldable                  ( foldl' )
 import           Data.List.NonEmpty             ( NonEmpty(..) )
 import           Data.Text                      ( Text )
 import qualified Data.Text                     as Text
 import           Data.Text.Lazy                 ( toStrict )
+import qualified Data.Text.Lazy.Builder        as Builder
 import           Data.Text.Lazy.Builder         ( Builder
                                                 , fromText
                                                 , toLazyText
@@ -30,6 +32,10 @@ makeParagraph contents = contents <> lineBreak <> lineBreak
 
 makeCodeInline :: Builder -> Builder
 makeCodeInline contents = "`" <> contents <> "`"
+
+makeJSONCodeBlock :: Builder -> Builder
+makeJSONCodeBlock contents =
+  "```json" <> lineBreak <> contents <> lineBreak <> "```" <> lineBreak
 
 renderHeader :: Int -> Text -> Builder
 renderHeader level header =
@@ -167,26 +173,28 @@ renderRecordFields fields = renderTableGFM
   (Fixed.mk4 "Field" "Type" "Required" "Description" :| fmap tableRow fields)
  where
   tableRow Field {..} = Fixed.mk4 fieldName
-                                  (displayRequired fieldRequired)
                                   (displayJSONType fieldType)
+                                  (displayRequired fieldRequired)
                                   fieldDescription
 
 renderJSONRequestBody :: JSONBody -> Builder
-renderJSONRequestBody JSONBody {..} =
-  (makeParagraph . fromText . displayJSONType) bodyType
+renderJSONRequestBody JSONBody {..} = renderJSONType bodyType
+
+renderJSONType :: JSONType -> Builder
+renderJSONType = makeParagraph . Builder.fromText . displayJSONType
 
 renderAnonymousRequestBody :: AnonymousRecord -> Builder
 renderAnonymousRequestBody AnonymousRecord {..} =
   renderRecordFields anonymousFields
 
 renderRequestBody :: RequestBodyRequest -> Builder
-renderRequestBody request = renderHeader 3 "Request Body" <> body
+renderRequestBody request = renderHeader 3 "Request Body"
+  <> bodyContents request
  where
-  body = case request of
-    RequestBodyRequest (RecordRequestBody record) ->
-      renderAnonymousRequestBody record
-    RequestBodyRequest (ArbitraryRequestBody jsonBody) ->
-      renderJSONRequestBody jsonBody
+  bodyContents (RequestBodyRequest (RecordRequestBody record)) =
+    renderAnonymousRequestBody record
+  bodyContents (RequestBodyRequest (ArbitraryRequestBody jsonBody)) =
+    renderJSONRequestBody jsonBody
 
 renderRequest :: Request -> Builder
 renderRequest (Get    queryParameters) = renderQueryParameters queryParameters
@@ -195,6 +203,30 @@ renderRequest (Patch  requestBody    ) = renderRequestBody requestBody
 renderRequest (Put    requestBody    ) = renderRequestBody requestBody
 renderRequest (Delete queryParameters) = renderQueryParameters queryParameters
 
+renderResponseStatusCode :: Natural -> Builder
+renderResponseStatusCode statusCode = renderHeader 3 "Response Status"
+  <> (makeParagraph . Builder.fromString . show) statusCode
+
+renderResponseNoContent :: Builder
+renderResponseNoContent =
+  renderHeader 3 "Response Content" <> makeParagraph "No content."
+
+renderResponseJSONContent :: JSONContent -> Builder
+renderResponseJSONContent JSONContent {..} =
+  renderHeader 3 "Response Content"
+    <> renderJSONType contentType
+    <> renderHeader 3 "Example Response"
+    <> makeJSONCodeBlock example
+  where example = (Builder.fromText . Text.strip) contentExample
+
+renderResponseContent :: ResponseContent -> Builder
+renderResponseContent (JSONResponse json) = renderResponseJSONContent json
+renderResponseContent NoContentResponse   = renderResponseNoContent
+
+renderResponse :: Response -> Builder
+renderResponse Response {..} = renderResponseStatusCode responseStatusCode
+  <> renderResponseContent responseContent
+
 renderEndpoint :: [PathSegment] -> Endpoint -> Builder
 renderEndpoint path endpoint@Endpoint {..} =
   renderHeader 2 endpointTitle
@@ -202,15 +234,25 @@ renderEndpoint path endpoint@Endpoint {..} =
     <> renderRequestHTTP path endpoint
     <> renderPathCaptures path
     <> renderRequest endpointRequest
+    <> renderResponse endpointResponse
 
 renderPath :: Path -> Builder
 renderPath Path {..} = foldMap (renderEndpoint pathLocation) pathEndpoints
+
+renderDefinition :: Record -> Builder
+renderDefinition Record {..} =
+  renderHeader 3 recordName <> renderRecordFields recordFields
+
+renderDefinitions :: [Record] -> Builder
+renderDefinitions records =
+  renderHeader 2 "Definitions" <> foldMap renderDefinition records
 
 renderModule :: Module -> Builder
 renderModule Module {..} =
   renderHeader 1 moduleTitle
     <> renderDescription moduleDescription
     <> foldMap renderPath modulePaths
+    <> renderDefinitions moduleDefinitions
 
 renderDocumentationBuilder :: Spec -> Builder
 renderDocumentationBuilder Spec {..} =

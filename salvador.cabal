@@ -25,6 +25,7 @@ library
   exposed-modules:     Salvador
                      , Salvador.Spec
                      , Salvador.Markdown
+                     , Salvador.CLI
 
   build-depends:       base >= 4.9.0.0 && < 4.13
                      , dhall >= 1.20.0 && < 1.21.0
