@@ -16,7 +16,7 @@ let paginationQueryParameters =
             "Maximum number of items to return."
         }
       , { name =
-            "start"
+            "offset"
         , type =
             C.ValueParameter { valueType = C.NaturalValue }
         , required =

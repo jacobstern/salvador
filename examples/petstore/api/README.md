@@ -21,7 +21,7 @@ List all pets.
 | Parameter | Type    | Required | Description                            |
 | --------- | ------- | -------- | -------------------------------------- |
 | limit     | Natural | Optional | Maximum number of items to return.     |
-| start     | Natural | Optional | Offset from the beginning of the list. |
+| offset    | Natural | Optional | Offset from the beginning of the list. |
 
 ### Response Status
 
