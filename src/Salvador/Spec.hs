@@ -58,7 +58,8 @@ data CaptureSegment = CaptureSegment
 instance Interpret CaptureSegment
 
 data Endpoint = Endpoint
-    { endpointDescription :: Text
+    { endpointTitle :: Text
+    , endpointDescription :: Text
     , endpointRequest :: Request
     , endpointResponse :: Response
     } deriving (Eq, Show, Ord, Generic)

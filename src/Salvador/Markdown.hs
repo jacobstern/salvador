@@ -28,6 +28,9 @@ lineBreak = singleton '\n'
 makeParagraph :: Builder -> Builder
 makeParagraph contents = contents <> lineBreak <> lineBreak
 
+makeCodeInline :: Builder -> Builder
+makeCodeInline contents = "`" <> contents <> "`"
+
 renderHeader :: Int -> Text -> Builder
 renderHeader level header =
   fromText (Text.replicate level "#")
@@ -84,41 +87,124 @@ renderTableGFM table@(header :| rest) =
     <> lineBreak
   where widths = tableColumnWidths table
 
-renderEndpointHeader :: [PathSegment] -> Endpoint -> Builder
-renderEndpointHeader segments Endpoint {..} =
-  renderHeader 2
-    $  requestMethodName endpointRequest
-    <> " "
-    <> templatePathURL segments
-
 getCaptureSegments :: [PathSegment] -> [CaptureSegment]
 getCaptureSegments segments = do
   CapturePathSegment captureSegment <- segments
   pure captureSegment
 
-displayValueType :: Value -> Text
-displayValueType (IntegerValue) = "Integer"
-displayValueType (NaturalValue) = "Natural"
-displayValueType (DoubleValue ) = "Double"
-displayValueType (TextValue   ) = "Text"
+headerToSlug :: Text -> Text
+headerToSlug = Text.map replaceSpaces . Text.toLower
+ where
+  replaceSpaces ' ' = '-'
+  replaceSpaces c   = c
+
+headerLink :: Text -> Text
+headerLink header = "#" <> headerToSlug header
+
+displayValue :: Value -> Text
+displayValue (IntegerValue) = "Int"
+displayValue (NaturalValue) = "Natural"
+displayValue (DoubleValue ) = "Double"
+displayValue (TextValue   ) = "Text"
+
+displayReference :: Text -> Text
+displayReference name = "[" <> name <> "](" <> headerLink name <> ")"
+
+displayReferenceList :: Text -> Text
+displayReferenceList name = "List of " <> displayReference name
+
+displayRequired :: Bool -> Text
+displayRequired True  = "Required"
+displayRequired False = "Optional"
+
+displayValueList :: Value -> Text
+displayValueList value = "List of " <> displayValue value
+
+displayParameterType :: ParameterType -> Text
+displayParameterType (ValueParameter (ValueType value)) = displayValue value
+displayParameterType (ListParameter  (ValueType value)) = displayValueList value
+
+displayJSONType :: JSONType -> Text
+displayJSONType (ValueJSON     (ValueType     value)) = displayValue value
+displayJSONType (ListJSON      (ValueType     value)) = displayValueList value
+displayJSONType (ReferenceJSON (ReferenceType name )) = displayReference name
+displayJSONType (ReferenceListJSON (ReferenceType name)) =
+  displayReferenceList name
+
+renderRequestHTTP :: [PathSegment] -> Endpoint -> Builder
+renderRequestHTTP segments Endpoint {..} = renderHeader 3 "HTTP Request"
+  <> (makeParagraph . makeCodeInline . fromText) request
+ where
+  request =
+    requestMethodName endpointRequest <> " " <> templatePathURL segments
 
 renderPathCaptures :: [PathSegment] -> Builder
-renderPathCaptures segments = case getCaptureSegments segments of
+renderPathCaptures path = case getCaptureSegments path of
   []              -> mempty
-  captureSegments -> renderTableGFM
-    (Fixed.mk3 "Capture" "Type" "Description" :| fmap tableRow captureSegments)
+  captureSegments -> renderHeader 3 "URL Parameters" <> renderTableGFM
+    (Fixed.mk3 "Parameter" "Type" "Description" :| fmap tableRow captureSegments
+    )
  where
   tableRow CaptureSegment {..} =
-    Fixed.mk3 captureName (displayValueType captureValueType) captureDescription
+    Fixed.mk3 captureName (displayValue captureValueType) captureDescription
+
+renderQueryParameters :: QueryParameterRequest -> Builder
+renderQueryParameters QueryParameterRequest {..} = case requestParameters of
+  []         -> mempty
+  parameters -> renderHeader 3 "Query Parameters" <> renderTableGFM
+    (  Fixed.mk4 "Parameter" "Type" "Required" "Description"
+    :| fmap tableRow parameters
+    )
+ where
+  tableRow QueryParameter {..} = Fixed.mk4
+    parameterName
+    (displayParameterType parameterType)
+    (displayRequired parameterRequired)
+    parameterDescription
+
+renderRecordFields :: [Field] -> Builder
+renderRecordFields fields = renderTableGFM
+  (Fixed.mk4 "Field" "Type" "Required" "Description" :| fmap tableRow fields)
+ where
+  tableRow Field {..} = Fixed.mk4 fieldName
+                                  (displayRequired fieldRequired)
+                                  (displayJSONType fieldType)
+                                  fieldDescription
+
+renderJSONRequestBody :: JSONBody -> Builder
+renderJSONRequestBody JSONBody {..} =
+  (makeParagraph . fromText . displayJSONType) bodyType
+
+renderAnonymousRequestBody :: AnonymousRecord -> Builder
+renderAnonymousRequestBody AnonymousRecord {..} =
+  renderRecordFields anonymousFields
+
+renderRequestBody :: RequestBodyRequest -> Builder
+renderRequestBody request = renderHeader 3 "Request Body" <> body
+ where
+  body = case request of
+    RequestBodyRequest (RecordRequestBody record) ->
+      renderAnonymousRequestBody record
+    RequestBodyRequest (ArbitraryRequestBody jsonBody) ->
+      renderJSONRequestBody jsonBody
+
+renderRequest :: Request -> Builder
+renderRequest (Get    queryParameters) = renderQueryParameters queryParameters
+renderRequest (Post   requestBody    ) = renderRequestBody requestBody
+renderRequest (Patch  requestBody    ) = renderRequestBody requestBody
+renderRequest (Put    requestBody    ) = renderRequestBody requestBody
+renderRequest (Delete queryParameters) = renderQueryParameters queryParameters
 
 renderEndpoint :: [PathSegment] -> Endpoint -> Builder
-renderEndpoint segments endpoint@Endpoint {..} =
-  renderEndpointHeader segments endpoint
+renderEndpoint path endpoint@Endpoint {..} =
+  renderHeader 2 endpointTitle
     <> renderDescription endpointDescription
+    <> renderRequestHTTP path endpoint
+    <> renderPathCaptures path
+    <> renderRequest endpointRequest
 
 renderPath :: Path -> Builder
 renderPath Path {..} = foldMap (renderEndpoint pathLocation) pathEndpoints
-  <> renderPathCaptures pathLocation
 
 renderModule :: Module -> Builder
 renderModule Module {..} =
