@@ -1,8 +1,11 @@
-# Petstore
+# Overview
 
-A loose port of the [Swagger Petstore
+This is a loose port of the [OpenAPI Petstore
 example](https://github.com/OAI/OpenAPI-Specification/blob/master/examples/v3.0/petstore.yaml)
 to the Salvador spec format.
+
+It demonstrates some of the nice features of Dhall and Salvador
+for specifying and documenting APIs.
 
 # Pets
 
@@ -27,7 +30,7 @@ List all pets.
 
 List of [Pet](#pet)
 
-**Response Content Example**
+**Example Response Content**
 
 ```json
 [
@@ -61,7 +64,7 @@ Create a pet.
 
 **Response Content**
 
-No content.
+No content
 
 ## GET /pets/{petId}
 
@@ -81,7 +84,7 @@ Access a single pet by its unique identifier.
 
 [Pet](#pet)
 
-**Response Content Example**
+**Example Response Content**
 
 ```json
 {

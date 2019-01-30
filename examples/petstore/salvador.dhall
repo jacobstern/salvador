@@ -53,12 +53,6 @@ let spec
     : T.Spec
     = { title =
           "Petstore"
-      , description =
-          ''
-          A loose port of the [Swagger Petstore
-          example](https://github.com/OAI/OpenAPI-Specification/blob/master/examples/v3.0/petstore.yaml)
-          to the Salvador spec format.
-          ''
       , validation =
           { acceptOptional =
               C.AllowNullUndefinedMissing
@@ -67,6 +61,22 @@ let spec
           }
       , modules =
           [ { title =
+                "Overview"
+            , description =
+                ''
+                This is a loose port of the [OpenAPI Petstore
+                example](https://github.com/OAI/OpenAPI-Specification/blob/master/examples/v3.0/petstore.yaml)
+                to the Salvador spec format.
+                
+                It demonstrates some of the nice features of Dhall and Salvador
+                for specifying and documenting APIs.
+                ''
+            , paths =
+                [] : List T.Path
+            , definitions =
+                [] : List T.Record
+            }
+          , { title =
                 "Pets"
             , description =
                 "Modify and access pets in the database."

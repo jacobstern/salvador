@@ -309,7 +309,6 @@ instance Interpret ResponseContent where
 
 data Spec = Spec
     { specTitle :: Text
-    , specDescription :: Text
     , specValidation :: Validation
     , specModules :: [Module]
     } deriving (Eq, Show, Ord, Generic)

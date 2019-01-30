@@ -21,9 +21,6 @@ import           Salvador.Spec
 
 type TableRow n = VecList n Text
 
-makeParagraph :: Doc ann -> Doc ann
-makeParagraph contents = contents <> hardline <> hardline
-
 makeCodeBlock :: Text -> Doc ann -> Doc ann
 makeCodeBlock lang = enclose prefix suffix
  where
@@ -45,8 +42,8 @@ renderBoldBlock contents = bolded contents <> hardline <> hardline
   where bolded = enclose "**" "**" . pretty
 
 renderDescription :: Text -> Doc ann
-renderDescription contents = fillParagraph contents <> hardline <> hardline
-  where fillParagraph = align . fillSep . fmap pretty . Text.words
+renderDescription contents =
+  pretty (Text.strip contents) <> hardline <> hardline
 
 templatePathURL :: [PathSegment] -> Text
 templatePathURL = mappend "/" . Text.intercalate "/" . fmap templateSegment
@@ -176,7 +173,7 @@ renderJSONRequestBody :: JSONBody -> Doc ann
 renderJSONRequestBody JSONBody {..} = renderJSONType bodyType
 
 renderJSONType :: JSONType -> Doc ann
-renderJSONType = makeParagraph . pretty . displayJSONType
+renderJSONType = renderBlock . displayJSONType
 
 renderAnonymousRequestBody :: AnonymousRecord -> Doc ann
 renderAnonymousRequestBody AnonymousRecord {..} =
@@ -200,7 +197,7 @@ renderRequest (Delete queryParameters) = renderQueryParameters queryParameters
 
 renderResponseExample :: ResponseContent -> Doc ann
 renderResponseExample (JSONResponse JSONContent {..}) =
-  renderBoldBlock "Response Content Example"
+  renderBoldBlock "Example Response Content"
     <> (makeCodeBlock "json" . pretty . Text.strip) contentExample
 renderResponseExample NoContentResponse = mempty
 
@@ -215,7 +212,7 @@ renderResponse Response {..} =
   statusCode = (Text.pack . show) responseStatusCode
   content    = case responseContent of
     (JSONResponse JSONContent {..}) -> displayJSONType contentType
-    NoContentResponse               -> "No content."
+    NoContentResponse               -> "No content"
 
 
 renderEndpoint :: [PathSegment] -> Endpoint -> Doc ann
@@ -234,6 +231,7 @@ renderDefinition Record {..} =
   renderHeader 3 recordName <> renderRecordFields recordFields
 
 renderDefinitions :: [Record] -> Doc ann
+renderDefinitions [] = mempty
 renderDefinitions records =
   renderHeader 2 "Definitions" <> foldMap renderDefinition records
 
@@ -245,10 +243,7 @@ renderModule Module {..} =
     <> renderDefinitions moduleDefinitions
 
 renderDocumentationDoc :: Spec -> Doc ann
-renderDocumentationDoc Spec {..} =
-  renderHeader 1 specTitle
-    <> renderDescription specDescription
-    <> foldMap renderModule specModules
+renderDocumentationDoc Spec {..} = foldMap renderModule specModules
 
 renderDocumentation :: Spec -> Text
 renderDocumentation =
