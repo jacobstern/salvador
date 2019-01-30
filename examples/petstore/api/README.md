@@ -55,7 +55,7 @@ Create a pet.
 
 | Field | Type | Required | Description                            |
 | ----- | ---- | -------- | -------------------------------------- |
-| name  | Text | Required | The name of the pet.                   |
+| name  | Text | Yes      | The name of the pet.                   |
 | tag   | Text | Optional | An optional tag to categorize the pet. |
 
 **Response Status Code**
@@ -102,7 +102,7 @@ A pet data structure returned from the API.
 
 | Field | Type    | Required | Description                            |
 | ----- | ------- | -------- | -------------------------------------- |
-| id    | Natural | Required | Unique identifier for the pet.         |
-| name  | Text    | Required | The name of the pet.                   |
+| id    | Natural | Yes      | Unique identifier for the pet.         |
+| name  | Text    | Yes      | The name of the pet.                   |
 | tag   | Text    | Optional | An optional tag to categorize the pet. |
 

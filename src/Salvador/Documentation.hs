@@ -119,7 +119,7 @@ referenceList :: Text -> Text
 referenceList name = "List of " <> reference name
 
 displayRequired :: Bool -> Text
-displayRequired True  = "Required"
+displayRequired True  = "Yes"
 displayRequired False = "Optional"
 
 displayParameterType :: ParameterType -> Text
