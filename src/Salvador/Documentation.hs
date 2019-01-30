@@ -226,11 +226,13 @@ renderEndpoint path endpoint@Endpoint {..} =
 renderPath :: Path -> Doc ann
 renderPath Path {..} = foldMap (renderEndpoint pathLocation) pathEndpoints
 
-renderDefinition :: Record -> Doc ann
-renderDefinition Record {..} =
-  renderHeader 3 recordName <> renderRecordFields recordFields
+renderDefinition :: NamedRecord -> Doc ann
+renderDefinition NamedRecord {..} =
+  renderHeader 3 recordName
+    <> renderDescription recordDescription
+    <> renderRecordFields recordFields
 
-renderDefinitions :: [Record] -> Doc ann
+renderDefinitions :: [NamedRecord] -> Doc ann
 renderDefinitions [] = mempty
 renderDefinitions records =
   renderHeader 2 "Definitions" <> foldMap renderDefinition records

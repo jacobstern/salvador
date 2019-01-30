@@ -1,6 +1,6 @@
 let Path = ./Path.dhall
 
-let Record = ./Record.dhall
+let NamedRecord = ./NamedRecord.dhall
 
 in  { title :
         Text
@@ -9,5 +9,5 @@ in  { title :
     , paths :
         List Path
     , definitions :
-        List Record
+        List NamedRecord
     }

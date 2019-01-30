@@ -98,6 +98,8 @@ Access a single pet by its unique identifier.
 
 ### Pet
 
+A pet data structure returned from the API.
+
 | Field | Type    | Required | Description                            |
 | ----- | ------- | -------- | -------------------------------------- |
 | id    | Natural | Required | Unique identifier for the pet.         |

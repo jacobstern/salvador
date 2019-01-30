@@ -74,7 +74,7 @@ let spec
             , paths =
                 [] : List T.Path
             , definitions =
-                [] : List T.Record
+                [] : List T.NamedRecord
             }
           , { title =
                 "Pets"
@@ -166,6 +166,10 @@ let spec
             , definitions =
                 [ { name =
                       "Pet"
+                  , description =
+                      ''
+                      A pet data structure returned from the API.
+                      ''
                   , fields =
                       List/concat
                       T.Field

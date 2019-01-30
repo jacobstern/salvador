@@ -8,13 +8,13 @@ module Salvador.Spec
   , JSONType(..)
   , LiteralSegment(..)
   , Module(..)
+  , NamedRecord(..)
   , OptionalValidation(..)
   , ParameterType(..)
   , Path(..)
   , PathSegment(..)
   , QueryParameter(..)
   , QueryParameterRequest(..)
-  , Record(..)
   , ReferenceType(..)
   , Request(..)
   , RequestBody(..)
@@ -129,7 +129,7 @@ data Module = Module
     { moduleTitle :: Text
     , moduleDescription :: Text
     , modulePaths :: [Path]
-    , moduleDefinitions :: [Record]
+    , moduleDefinitions :: [NamedRecord]
     } deriving (Eq, Show, Ord, Generic)
 
 instance Interpret Module
@@ -208,12 +208,13 @@ newtype QueryParameterRequest = QueryParameterRequest
 
 instance Interpret QueryParameterRequest
 
-data Record = Record
+data NamedRecord = NamedRecord
     { recordName :: Text
+    , recordDescription :: Text
     , recordFields :: [Field]
     } deriving (Eq, Show, Ord, Generic)
 
-instance Interpret Record
+instance Interpret NamedRecord
 
 newtype ReferenceType = ReferenceType
     { referenceName :: Text
