@@ -1,51 +1,52 @@
-module Salvador.Markdown
-  ( renderDocumentationGFM
+module Salvador.Documentation
+  ( renderDocumentation
+  , renderDocumentationDoc
+  , headerToSlug
   )
 where
 
+import qualified Data.Char                     as Char
 import           Data.Foldable                  ( foldl' )
 import           Data.List.NonEmpty             ( NonEmpty(..) )
 import           Data.Text                      ( Text )
 import qualified Data.Text                     as Text
-import           Data.Text.Lazy                 ( toStrict )
-import qualified Data.Text.Lazy.Builder        as Builder
-import           Data.Text.Lazy.Builder         ( Builder
-                                                , fromText
-                                                , toLazyText
-                                                , singleton
-                                                )
-
 import           Data.Vector.Fixed              ( Arity
                                                 , VecList
                                                 )
 import qualified Data.Vector.Fixed             as Fixed
+import           Data.Text.Prettyprint.Doc
+import           Data.Text.Prettyprint.Doc.Render.Text
+                                                ( renderStrict )
 import           Salvador.Spec
 
 type TableRow n = VecList n Text
 
-lineBreak :: Builder
-lineBreak = singleton '\n'
+makeParagraph :: Doc ann -> Doc ann
+makeParagraph contents = contents <> hardline <> hardline
 
-makeParagraph :: Builder -> Builder
-makeParagraph contents = contents <> lineBreak <> lineBreak
+makeCodeBlock :: Text -> Doc ann -> Doc ann
+makeCodeBlock lang = enclose prefix suffix
+ where
+  prefix = "```" <> pretty lang <> hardline
+  suffix = hardline <> "```" <> hardline <> hardline
 
-makeJSONCodeBlock :: Builder -> Builder
-makeJSONCodeBlock contents =
-  "```json" <> lineBreak <> contents <> lineBreak <> "```" <> lineBreak
-
-renderHeader :: Int -> Text -> Builder
+renderHeader :: Int -> Text -> Doc ann
 renderHeader level header =
-  fromText (Text.replicate level "#")
-    <> singleton ' '
-    <> fromText (Text.strip header)
-    <> lineBreak
-    <> lineBreak
+  pretty (Text.replicate level "#")
+    <+> pretty (Text.strip header)
+    <>  hardline
+    <>  hardline
 
-renderTitle :: Text -> Builder
-renderTitle = renderHeader 1
+renderBlock :: Text -> Doc ann
+renderBlock contents = pretty contents <> hardline <> hardline
 
-renderDescription :: Text -> Builder
-renderDescription = makeParagraph . fromText . Text.strip
+renderBoldBlock :: Text -> Doc ann
+renderBoldBlock contents = bolded contents <> hardline <> hardline
+  where bolded = enclose "**" "**" . pretty
+
+renderDescription :: Text -> Doc ann
+renderDescription contents = fillParagraph contents <> hardline <> hardline
+  where fillParagraph = align . fillSep . fmap pretty . Text.words
 
 templatePathURL :: [PathSegment] -> Text
 templatePathURL = mappend "/" . Text.intercalate "/" . fmap templateSegment
@@ -65,40 +66,42 @@ tableColumnWidths :: Arity n => NonEmpty (TableRow n) -> VecList n Int
 tableColumnWidths = foldl' reduce (Fixed.replicate 0)
   where reduce acc = Fixed.zipWith max acc . Fixed.map Text.length
 
-renderTableRow :: Arity n => VecList n Int -> TableRow n -> Builder
-renderTableRow widths rows = "|" <> fromText innerContents <> "|" <> lineBreak
+renderTableRow :: Arity n => VecList n Int -> TableRow n -> Doc ann
+renderTableRow widths rows = "|" <> pretty innerContents <> "|" <> hardline
  where
-  pad width text = text <> Text.replicate (width - Text.length text) " "
-  padContents width text = " " <> pad width text <> " "
+  pad width' text = text <> Text.replicate (width' - Text.length text) " "
+  padContents width' text = " " <> pad width' text <> " "
   innerContents =
     (Text.intercalate "|" . Fixed.toList . Fixed.zipWith padContents widths)
       rows
 
-renderTableDelimiter :: Arity n => VecList n Int -> Builder
-renderTableDelimiter widths = "|" <> fromText innerContents <> "|" <> lineBreak
+renderTableDelimiter :: Arity n => VecList n Int -> Doc ann
+renderTableDelimiter widths = "|" <> pretty innerContents <> "|" <> hardline
  where
-  contents width = " " <> Text.replicate width "-" <> " "
+  contents width' = " " <> Text.replicate width' "-" <> " "
   innerContents =
     (Text.intercalate "|" . Fixed.toList . Fixed.map contents) widths
 
-renderTableGFM :: Arity n => NonEmpty (TableRow n) -> Builder
+renderTableGFM :: Arity n => NonEmpty (TableRow n) -> Doc ann
 renderTableGFM table@(header :| rest) =
   renderTableRow widths header
     <> renderTableDelimiter widths
     <> foldMap (renderTableRow widths) rest
-    <> lineBreak
+    <> hardline
   where widths = tableColumnWidths table
 
-getCaptureSegments :: [PathSegment] -> [CaptureSegment]
-getCaptureSegments segments = do
-  CapturePathSegment captureSegment <- segments
+captureSegments :: [PathSegment] -> [CaptureSegment]
+captureSegments path = do
+  CapturePathSegment captureSegment <- path
   pure captureSegment
 
 headerToSlug :: Text -> Text
-headerToSlug = Text.map replaceSpaces . Text.toLower
+headerToSlug = Text.map spaceToDash . removeInvalidChars . Text.toLower
  where
-  replaceSpaces ' ' = '-'
-  replaceSpaces c   = c
+   -- https://gist.github.com/asabaylus/3071099#gistcomment-1593627
+  spaceToDash c = if c == ' ' then '-' else c
+  isValidChar c = or [Char.isAlphaNum c, c == '-', c == ' ']
+  removeInvalidChars = Text.filter isValidChar
 
 headerLink :: Text -> Text
 headerLink header = "#" <> headerToSlug header
@@ -109,49 +112,47 @@ displayValue (NaturalValue) = "Natural"
 displayValue (DoubleValue ) = "Double"
 displayValue (TextValue   ) = "Text"
 
-displayReference :: Text -> Text
-displayReference name = "[" <> name <> "](" <> headerLink name <> ")"
+displayValueList :: Value -> Text
+displayValueList value = "List of " <> displayValue value
 
-displayReferenceList :: Text -> Text
-displayReferenceList name = "List of " <> displayReference name
+reference :: Text -> Text
+reference name = "[" <> name <> "](" <> headerLink name <> ")"
+
+referenceList :: Text -> Text
+referenceList name = "List of " <> reference name
 
 displayRequired :: Bool -> Text
 displayRequired True  = "Required"
 displayRequired False = "Optional"
-
-displayValueList :: Value -> Text
-displayValueList value = "List of " <> displayValue value
 
 displayParameterType :: ParameterType -> Text
 displayParameterType (ValueParameter (ValueType value)) = displayValue value
 displayParameterType (ListParameter  (ValueType value)) = displayValueList value
 
 displayJSONType :: JSONType -> Text
-displayJSONType (ValueJSON     (ValueType     value)) = displayValue value
-displayJSONType (ListJSON      (ValueType     value)) = displayValueList value
-displayJSONType (ReferenceJSON (ReferenceType name )) = displayReference name
-displayJSONType (ReferenceListJSON (ReferenceType name)) =
-  displayReferenceList name
+displayJSONType (ValueJSON         (ValueType     value)) = displayValue value
+displayJSONType (ListJSON (ValueType value)) = displayValueList value
+displayJSONType (ReferenceJSON     (ReferenceType name )) = reference name
+displayJSONType (ReferenceListJSON (ReferenceType name )) = referenceList name
 
-renderEndpointHeader :: [PathSegment] -> Endpoint -> Builder
+renderEndpointHeader :: [PathSegment] -> Endpoint -> Doc ann
 renderEndpointHeader path Endpoint {..} = renderHeader 2 request
  where
   request = requestMethodName endpointRequest <> " " <> templatePathURL path
 
-renderPathCaptures :: [PathSegment] -> Builder
-renderPathCaptures path = case getCaptureSegments path of
-  []              -> mempty
-  captureSegments -> renderHeader 3 "URL Parameters" <> renderTableGFM
-    (Fixed.mk3 "Parameter" "Type" "Description" :| fmap tableRow captureSegments
-    )
+renderPathCaptures :: [PathSegment] -> Doc ann
+renderPathCaptures path = case captureSegments path of
+  []       -> mempty
+  segments -> renderBoldBlock "URL Parameters" <> renderTableGFM
+    (Fixed.mk3 "Parameter" "Type" "Description" :| fmap tableRow segments)
  where
   tableRow CaptureSegment {..} =
     Fixed.mk3 captureName (displayValue captureValueType) captureDescription
 
-renderQueryParameters :: QueryParameterRequest -> Builder
+renderQueryParameters :: QueryParameterRequest -> Doc ann
 renderQueryParameters QueryParameterRequest {..} = case requestParameters of
   []         -> mempty
-  parameters -> renderHeader 3 "Query Parameters" <> renderTableGFM
+  parameters -> renderBoldBlock "Query Parameters" <> renderTableGFM
     (  Fixed.mk4 "Parameter" "Type" "Required" "Description"
     :| fmap tableRow parameters
     )
@@ -162,7 +163,7 @@ renderQueryParameters QueryParameterRequest {..} = case requestParameters of
     (displayRequired parameterRequired)
     parameterDescription
 
-renderRecordFields :: [Field] -> Builder
+renderRecordFields :: [Field] -> Doc ann
 renderRecordFields fields = renderTableGFM
   (Fixed.mk4 "Field" "Type" "Required" "Description" :| fmap tableRow fields)
  where
@@ -171,18 +172,18 @@ renderRecordFields fields = renderTableGFM
                                   (displayRequired fieldRequired)
                                   fieldDescription
 
-renderJSONRequestBody :: JSONBody -> Builder
+renderJSONRequestBody :: JSONBody -> Doc ann
 renderJSONRequestBody JSONBody {..} = renderJSONType bodyType
 
-renderJSONType :: JSONType -> Builder
-renderJSONType = makeParagraph . Builder.fromText . displayJSONType
+renderJSONType :: JSONType -> Doc ann
+renderJSONType = makeParagraph . pretty . displayJSONType
 
-renderAnonymousRequestBody :: AnonymousRecord -> Builder
+renderAnonymousRequestBody :: AnonymousRecord -> Doc ann
 renderAnonymousRequestBody AnonymousRecord {..} =
   renderRecordFields anonymousFields
 
-renderRequestBody :: RequestBodyRequest -> Builder
-renderRequestBody request = renderHeader 3 "Request Body"
+renderRequestBody :: RequestBodyRequest -> Doc ann
+renderRequestBody request = renderBoldBlock "Request Body"
   <> bodyContents request
  where
   bodyContents (RequestBodyRequest (RecordRequestBody record)) =
@@ -190,37 +191,34 @@ renderRequestBody request = renderHeader 3 "Request Body"
   bodyContents (RequestBodyRequest (ArbitraryRequestBody jsonBody)) =
     renderJSONRequestBody jsonBody
 
-renderRequest :: Request -> Builder
+renderRequest :: Request -> Doc ann
 renderRequest (Get    queryParameters) = renderQueryParameters queryParameters
 renderRequest (Post   requestBody    ) = renderRequestBody requestBody
 renderRequest (Patch  requestBody    ) = renderRequestBody requestBody
 renderRequest (Put    requestBody    ) = renderRequestBody requestBody
 renderRequest (Delete queryParameters) = renderQueryParameters queryParameters
 
-renderJSONCodeBlock :: Text -> Builder
-renderJSONCodeBlock = makeJSONCodeBlock . Builder.fromText . Text.strip
+renderResponseExample :: ResponseContent -> Doc ann
+renderResponseExample (JSONResponse JSONContent {..}) =
+  renderBoldBlock "Response Content Example"
+    <> (makeCodeBlock "json" . pretty . Text.strip) contentExample
+renderResponseExample NoContentResponse = mempty
 
-renderResponsesTable :: Response -> Builder
-renderResponsesTable Response {..} =
-  renderHeader 3 "Responses" <> renderTableGFM
-    (Fixed.mk2 "Status Code" "Content" :| [Fixed.mk2 statusCode content])
+renderResponse :: Response -> Doc ann
+renderResponse Response {..} =
+  renderBoldBlock "Response Status Code"
+    <> renderBlock statusCode
+    <> renderBoldBlock "Response Content"
+    <> renderBlock content
+    <> renderResponseExample responseContent
  where
   statusCode = (Text.pack . show) responseStatusCode
   content    = case responseContent of
     (JSONResponse JSONContent {..}) -> displayJSONType contentType
-    NoContentResponse               -> "No content"
+    NoContentResponse               -> "No content."
 
-renderResponseExample :: Response -> Builder
-renderResponseExample Response {..} = case responseContent of
-  (JSONResponse JSONContent {..}) ->
-    renderHeader 3 "Example Response" <> renderJSONCodeBlock contentExample
-  NoContentResponse -> mempty
 
-renderResponse :: Response -> Builder
-renderResponse response =
-  renderResponsesTable response <> renderResponseExample response
-
-renderEndpoint :: [PathSegment] -> Endpoint -> Builder
+renderEndpoint :: [PathSegment] -> Endpoint -> Doc ann
 renderEndpoint path endpoint@Endpoint {..} =
   renderEndpointHeader path endpoint
     <> renderDescription endpointDescription
@@ -228,29 +226,31 @@ renderEndpoint path endpoint@Endpoint {..} =
     <> renderRequest endpointRequest
     <> renderResponse endpointResponse
 
-renderPath :: Path -> Builder
+renderPath :: Path -> Doc ann
 renderPath Path {..} = foldMap (renderEndpoint pathLocation) pathEndpoints
 
-renderDefinition :: Record -> Builder
+renderDefinition :: Record -> Doc ann
 renderDefinition Record {..} =
   renderHeader 3 recordName <> renderRecordFields recordFields
 
-renderDefinitions :: [Record] -> Builder
+renderDefinitions :: [Record] -> Doc ann
 renderDefinitions records =
   renderHeader 2 "Definitions" <> foldMap renderDefinition records
 
-renderModule :: Module -> Builder
+renderModule :: Module -> Doc ann
 renderModule Module {..} =
   renderHeader 1 moduleTitle
     <> renderDescription moduleDescription
     <> foldMap renderPath modulePaths
     <> renderDefinitions moduleDefinitions
 
-renderDocumentationBuilder :: Spec -> Builder
-renderDocumentationBuilder Spec {..} =
-  renderTitle specTitle
+renderDocumentationDoc :: Spec -> Doc ann
+renderDocumentationDoc Spec {..} =
+  renderHeader 1 specTitle
     <> renderDescription specDescription
     <> foldMap renderModule specModules
 
-renderDocumentationGFM :: Spec -> Text
-renderDocumentationGFM = toStrict . toLazyText . renderDocumentationBuilder
+renderDocumentation :: Spec -> Text
+renderDocumentation =
+  renderStrict . layoutPretty layoutOptions . renderDocumentationDoc
+  where layoutOptions = LayoutOptions {layoutPageWidth = AvailablePerLine 80 1}

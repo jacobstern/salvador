@@ -12,20 +12,22 @@ Modify and access pets in the database.
 
 List all pets.
 
-### Query Parameters
+**Query Parameters**
 
 | Parameter | Type    | Required | Description                            |
 | --------- | ------- | -------- | -------------------------------------- |
 | limit     | Natural | Optional | Maximum number of items to return.     |
 | offset    | Natural | Optional | Offset from the beginning of the list. |
 
-### Responses
+**Response Status Code**
 
-| Status Code | Content             |
-| ----------- | ------------------- |
-| 200         | List of [Pet](#pet) |
+200
 
-### Example Response
+**Response Content**
+
+List of [Pet](#pet)
+
+**Response Content Example**
 
 ```json
 [
@@ -41,40 +43,45 @@ List all pets.
     }
 ]
 ```
+
 ## POST /pets
 
 Create a pet.
 
-### Request Body
+**Request Body**
 
 | Field | Type | Required | Description                            |
 | ----- | ---- | -------- | -------------------------------------- |
 | name  | Text | Required | The name of the pet.                   |
 | tag   | Text | Optional | An optional tag to categorize the pet. |
 
-### Responses
+**Response Status Code**
 
-| Status Code | Content    |
-| ----------- | ---------- |
-| 201         | No content |
+201
+
+**Response Content**
+
+No content.
 
 ## GET /pets/{petId}
 
 Access a single pet by its unique identifier.
 
-### URL Parameters
+**URL Parameters**
 
 | Parameter | Type    | Description                          |
 | --------- | ------- | ------------------------------------ |
 | petId     | Natural | The identifier of a pet to retrieve. |
 
-### Responses
+**Response Status Code**
 
-| Status Code | Content     |
-| ----------- | ----------- |
-| 200         | [Pet](#pet) |
+200
 
-### Example Response
+**Response Content**
+
+[Pet](#pet)
+
+**Response Content Example**
 
 ```json
 {
@@ -83,6 +90,7 @@ Access a single pet by its unique identifier.
     "tag": null
 }
 ```
+
 ## Definitions
 
 ### Pet
